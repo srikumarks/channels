@@ -3,6 +3,9 @@
 # channels
 
 Fast implementation of CSP style channels for modern Javascript using async and await.
+See blog post - [Channels with async and await][post].
+
+[post]: http://sriku.org/blog/2018/04/06/channels-with-async-and-await/
 
 ## Usage
 
