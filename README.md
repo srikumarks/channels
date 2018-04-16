@@ -9,7 +9,7 @@ See blog post - [Channels with async and await][post].
 
 ## Usage
 
-```
+```js
 let Channel = require('./src/channel');
 
 let chan = Channel.fast(); // or Channel.friendly().
