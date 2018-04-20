@@ -1,0 +1,29 @@
+{
+  "name": "channels",
+  "version": "0.1.0",
+  "description": "An implementation of CSP-style channels for modern Javascript using async and await.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/srikumarks/channels.git"
+  },
+  "keywords": [
+    "CSP",
+    "channels",
+    "async",
+    "await",
+    "javascript"
+  ],
+  "author": "Srikumar K. S.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/srikumarks/channels/issues"
+  },
+  "homepage": "https://github.com/srikumarks/channels#readme",
+  "devDependencies": {
+    "jest": "^22.4.3"
+  }
+}

@@ -22,9 +22,11 @@ function fastScheduler(fn, val) {
 // For storing the two continuation paths accessible
 // at an `await` point.
 function Continuation(onSuccess, onFailure) {
-    this.onSuccess = onSuccess;
-    this.onFailure = onFailure;
+    this.onSuccess = onSuccess || Continuation.noop;
+    this.onFailure = onFailure || Continuation.noop;
 }
+
+Continuation.noop = function (val) {};
 
 // A channel has only one main method - `chan.post(val)` -
 // which needs to be awaited upon like `await chan.post(val)`
@@ -45,6 +47,9 @@ function Channel(schedulerFn) {
     // We use a "back channel" to hook into the producers waiting for
     // their channel postings to go through.
     let backChan = {
+        now: function () {
+            return backChan.then(Continuation.noop, Continuation.noop);
+        },
         then: function (onSuccess, onFailure) {
             // We'll get these continuations from the `await chan.push(val)`.
             callfronts.push(new Continuation(onSuccess, onFailure));
@@ -99,6 +104,8 @@ function Channel(schedulerFn) {
         // This is the main interface that lets you post
         // values to a channel. It returns a pseudo-promise
         // so that you can use it with await like `await chan.post(val)`.
+        // If you want to make a sync post and continue, you can
+        // do `chan.post(val).now()`.
         post: function (val) {
             // Don't accumulate values once we've reached error.
             if (!error) {
@@ -141,6 +148,45 @@ Channel.friendly = function () {
 
 Channel.fast = function () {
     return new Channel(fastScheduler);
+};
+
+function WrappedValue(val) {
+    this.value = val;
+}
+
+WrappedValue.prototype.unwrap = function () {
+    return this.value;
+};
+
+// If you want the value passed to not be affected by the
+// mechanism using which channels are implemented - for
+// example, promises that you don't want to be resolved,
+// other channels, deferred objects, and such, then you
+// will need to wrap them before posting, and `Channel.unwrap()` them
+// on reception.
+Channel.wrap = function (val) {
+    return new WrappedValue(val);
+};
+
+// Unwrapping checks for wrapped values and so if you want
+// safe passage for values through a channel, you can do -
+//
+// await chan.post(Channel.wrap(val))
+//
+// and get these values using -
+//
+// Channel.unwrap(await chan)
+//
+// Calling unwrap on values not wrapped is also safe - i.e.
+// if you did `Channel.unwrap(await chan)` everywhere you 
+// needed to get a value out of a channel, that would be ok
+// whether or not posters used wrapped values.
+Channel.unwrap = function (val) {
+    return val instanceof WrappedValue ? val.unwrap() : val;
+};
+
+Channel.isWrapped = function (val) {
+    return val instanceof WrappedValue;
 };
 
 module.exports = Channel;
